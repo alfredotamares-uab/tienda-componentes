@@ -7,7 +7,7 @@ const PRODUCTOS_INICIALES: Producto[] = [
     nombre: 'GeForce RTX 4060',
     categoria: 'Tarjetas gráficas',
     detalle: 'NVIDIA · 8 GB GDDR6',
-    precio: 2850,
+    precio: 5700,
     existencias: 6,
   },
   {
@@ -15,7 +15,7 @@ const PRODUCTOS_INICIALES: Producto[] = [
     nombre: 'Radeon RX 7600',
     categoria: 'Tarjetas gráficas',
     detalle: 'AMD · 8 GB GDDR6',
-    precio: 2490,
+    precio: 4980,
     existencias: 4,
   },
   {
@@ -23,7 +23,7 @@ const PRODUCTOS_INICIALES: Producto[] = [
     nombre: 'Ryzen 5 5600',
     categoria: 'Procesadores',
     detalle: 'AMD · Socket AM4',
-    precio: 1090,
+    precio: 2180,
     existencias: 10,
   },
   {
@@ -31,7 +31,7 @@ const PRODUCTOS_INICIALES: Producto[] = [
     nombre: 'Core i5-12400F',
     categoria: 'Procesadores',
     detalle: 'Intel · Socket LGA1700',
-    precio: 1390,
+    precio: 2780,
     existencias: 7,
   },
   {
@@ -39,7 +39,7 @@ const PRODUCTOS_INICIALES: Producto[] = [
     nombre: 'Kingston FURY Beast DDR4 RGB',
     categoria: 'Memoria RAM',
     detalle: '16 GB · 3200 MT/s · LED RGB',
-    precio: 320,
+    precio: 640,
     existencias: 12,
   },
   {
@@ -47,7 +47,7 @@ const PRODUCTOS_INICIALES: Producto[] = [
     nombre: 'SSD Kingston NV3',
     categoria: 'Almacenamiento',
     detalle: '1 TB · M.2 2280 · PCIe 4.0 NVMe',
-    precio: 490,
+    precio: 980,
     existencias: 9,
   },
   {
@@ -55,7 +55,7 @@ const PRODUCTOS_INICIALES: Producto[] = [
     nombre: 'Placa madre B550',
     categoria: 'Placas madre',
     detalle: 'Socket AM4 · Memoria DDR4',
-    precio: 970,
+    precio: 1940,
     existencias: 5,
   },
   {
@@ -63,7 +63,7 @@ const PRODUCTOS_INICIALES: Producto[] = [
     nombre: 'DeepCool DN650',
     categoria: 'Fuentes de poder',
     detalle: '650 W · ATX · 80 PLUS 230V EU',
-    precio: 540,
+    precio: 1080,
     existencias: 8,
   },
   {
@@ -71,7 +71,7 @@ const PRODUCTOS_INICIALES: Producto[] = [
     nombre: 'SSD Samsung 990 EVO Plus',
     categoria: 'Almacenamiento',
     detalle: '1 TB · M.2 2280 · PCIe 4.0 NVMe',
-    precio: 790,
+    precio: 1580,
     existencias: 6,
   },
   {
@@ -79,7 +79,7 @@ const PRODUCTOS_INICIALES: Producto[] = [
     nombre: 'Corsair CX650',
     categoria: 'Fuentes de poder',
     detalle: '650 W · ATX · 80 PLUS Bronze',
-    precio: 650,
+    precio: 1300,
     existencias: 5,
   },
 ];
@@ -188,7 +188,7 @@ export class TiendaService {
 
   private abrir(): Promise<IDBDatabase> {
     this.conexion ??= new Promise<IDBDatabase>((resolve, reject) => {
-      const apertura = indexedDB.open('tienda-componentes', 2);
+      const apertura = indexedDB.open('tienda-componentes', 3);
 
       apertura.onupgradeneeded = ({ oldVersion }) => {
         if (oldVersion === 0) {
@@ -201,21 +201,30 @@ export class TiendaService {
           return;
         }
 
-        // La versión 2 actualiza el catálogo conservando los precios, las existencias y los pedidos guardados.
+        // Las bases de la versión 1 también reciben los nombres y productos agregados en la versión 2.
+        const cambiosV2 =
+          oldVersion === 1
+            ? PRODUCTOS_INICIALES.filter(({ id }) => [5, 6, 8, 9, 10].includes(id))
+            : [];
+        const pendientes = new Map(cambiosV2.map((producto) => [producto.id, producto]));
         const productos = apertura.transaction!.objectStore('productos');
-        for (const producto of PRODUCTOS_INICIALES.filter(({ id }) =>
-          [5, 6, 8, 9, 10].includes(id),
-        )) {
-          const consulta: IDBRequest<Producto | undefined> = productos.get(producto.id);
-          consulta.onsuccess = () => {
-            const guardado = consulta.result;
-            if (guardado) {
-              productos.put({ ...guardado, nombre: producto.nombre, detalle: producto.detalle });
-            } else {
-              productos.add(producto);
-            }
-          };
-        }
+        const consulta: IDBRequest<Producto[]> = productos.getAll();
+        consulta.onsuccess = () => {
+          for (const guardado of consulta.result) {
+            const cambio = pendientes.get(guardado.id);
+            pendientes.delete(guardado.id);
+            productos.put({
+              ...guardado,
+              nombre: cambio?.nombre ?? guardado.nombre,
+              detalle: cambio?.detalle ?? guardado.detalle,
+              precio: guardado.precio * 2,
+            });
+          }
+
+          for (const producto of pendientes.values()) {
+            productos.add(producto);
+          }
+        };
       };
 
       apertura.onsuccess = () => {
