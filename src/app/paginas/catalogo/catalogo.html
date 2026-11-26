@@ -1,0 +1,39 @@
+<h1 class="mb-4">Catálogo de componentes</h1>
+
+<div class="row g-3 mb-4">
+  <div class="col-12 col-sm-7">
+    <label for="busqueda" class="form-label">Buscar componente</label>
+    <input
+      id="busqueda"
+      class="form-control"
+      type="search"
+      placeholder="Ej. RTX, Ryzen o DDR4"
+      [(ngModel)]="busqueda"
+    />
+  </div>
+  <div class="col-12 col-sm-5">
+    <label for="categoria" class="form-label">Categoría</label>
+    <select id="categoria" class="form-select" [(ngModel)]="categoria">
+      <option value="">Todas las categorías</option>
+      @for (opcion of categorias(); track opcion) {
+        <option [value]="opcion">{{ opcion }}</option>
+      }
+    </select>
+  </div>
+</div>
+
+@if (cargando()) {
+  <p role="status">Cargando productos…</p>
+} @else if (error()) {
+  <p class="alert alert-danger" role="alert">{{ error() }}</p>
+} @else {
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
+    @for (producto of filtrados(); track producto.id) {
+      <div class="col">
+        <app-producto-tarjeta [producto]="producto" (agregar)="pedir($event)" />
+      </div>
+    } @empty {
+      <p class="col-12 text-body-secondary">No se encontraron productos con esos filtros.</p>
+    }
+  </div>
+}

@@ -1,0 +1,32 @@
+<header class="encabezado">
+  <div class="container d-flex flex-wrap align-items-center justify-content-between gap-2 py-3">
+    <a class="marca text-decoration-none" routerLink="/productos">Tienda de Componentes</a>
+    <nav class="nav nav-pills flex-wrap gap-1" aria-label="Navegación principal">
+      <a
+        class="nav-link"
+        routerLink="/productos"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+        >Catálogo</a
+      >
+      <a
+        class="nav-link"
+        routerLink="/nuevo-pedido"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+        >Nuevo pedido</a
+      >
+      <a
+        class="nav-link"
+        routerLink="/pedidos"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+        >Historial</a
+      >
+    </nav>
+  </div>
+</header>
+
+<main class="container py-4 py-md-5">
+  <router-outlet />
+</main>

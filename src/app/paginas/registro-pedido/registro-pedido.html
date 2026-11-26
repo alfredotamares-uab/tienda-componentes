@@ -1,0 +1,115 @@
+<h1 class="mb-4">Nuevo pedido</h1>
+
+@if (cargando()) {
+  <p role="status">Cargando productos…</p>
+} @else if (errorCarga()) {
+  <p class="alert alert-danger" role="alert">{{ errorCarga() }}</p>
+} @else {
+  <form class="card" [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+    <div class="card-body p-3 p-md-4">
+      <fieldset [disabled]="guardando()">
+        <div class="mb-4">
+          <label for="cliente" class="form-label">Nombre del cliente</label>
+          <input
+            id="cliente"
+            class="form-control"
+            type="text"
+            formControlName="cliente"
+            autocomplete="name"
+            required
+            maxlength="100"
+            [class.is-invalid]="
+              formulario.controls.cliente.touched && formulario.controls.cliente.invalid
+            "
+            aria-describedby="cliente-error"
+          />
+          <div id="cliente-error" class="invalid-feedback">
+            Ingresa un nombre de cliente de hasta 100 caracteres.
+          </div>
+        </div>
+
+        <fieldset class="mb-3" formArrayName="lineas">
+          <legend class="h5 fw-semibold mb-3">Productos del pedido</legend>
+
+          @for (linea of lineas.controls; track linea; let i = $index) {
+            <div class="row g-3 align-items-start mb-3" [formGroupName]="i">
+              <div class="col-12 col-md">
+                <label [for]="'producto-' + i" class="form-label">Producto {{ i + 1 }}</label>
+                <select
+                  [id]="'producto-' + i"
+                  class="form-select"
+                  formControlName="productoId"
+                  required
+                  [class.is-invalid]="
+                    linea.controls.productoId.touched && linea.controls.productoId.invalid
+                  "
+                  [attr.aria-describedby]="'producto-error-' + i"
+                >
+                  <option [ngValue]="null">Selecciona un producto</option>
+                  @for (producto of productos(); track producto.id) {
+                    <option [ngValue]="producto.id" [disabled]="producto.existencias === 0">
+                      {{ producto.nombre }} ({{ producto.existencias }} disponibles)
+                    </option>
+                  }
+                </select>
+                <div [id]="'producto-error-' + i" class="invalid-feedback">
+                  Selecciona un producto.
+                </div>
+              </div>
+
+              <div class="col-7 col-md-3">
+                <label [for]="'cantidad-' + i" class="form-label">Cantidad</label>
+                <input
+                  [id]="'cantidad-' + i"
+                  class="form-control"
+                  type="number"
+                  formControlName="cantidad"
+                  min="1"
+                  step="1"
+                  required
+                  [class.is-invalid]="
+                    linea.controls.cantidad.touched && linea.controls.cantidad.invalid
+                  "
+                  [attr.aria-describedby]="'cantidad-error-' + i"
+                />
+                <div [id]="'cantidad-error-' + i" class="invalid-feedback">
+                  Ingresa una cantidad entera mayor o igual a 1.
+                </div>
+              </div>
+
+              @if (lineas.length > 1) {
+                <div class="col-5 col-md-auto pt-4 mt-3">
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary w-100 mt-2"
+                    [attr.aria-label]="'Quitar producto ' + (i + 1)"
+                    (click)="quitarLinea(i)"
+                  >
+                    Quitar
+                  </button>
+                </div>
+              }
+            </div>
+          }
+
+          <button type="button" class="btn btn-outline-secondary" (click)="agregarLinea()">
+            Agregar producto
+          </button>
+        </fieldset>
+
+        @if (errorFormulario()) {
+          <p class="alert alert-danger" role="alert">{{ errorFormulario() }}</p>
+        }
+
+        <div
+          class="border-top pt-3 d-flex flex-wrap align-items-center justify-content-between gap-3"
+        >
+          <p class="fs-5 fw-semibold mb-0">Total: {{ total() | currency: 'BOB' : 'Bs' }}</p>
+          <button type="submit" class="btn btn-primary" [disabled]="guardando()">
+            {{ guardando() ? 'Guardando…' : 'Registrar pedido' }}
+          </button>
+        </div>
+      </fieldset>
+    </div>
+  </form>
+}

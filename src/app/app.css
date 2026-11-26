@@ -1,0 +1,25 @@
+.encabezado {
+  background: #12233e;
+  border-bottom: 3px solid #4bafff;
+}
+
+.marca {
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 750;
+}
+
+.nav-link {
+  color: #e1ecfa;
+}
+
+.nav-link:hover,
+.nav-link:focus-visible,
+.nav-pills .nav-link.active {
+  background: #e2efff;
+  color: #152c4d;
+}
+
+main {
+  max-width: 72rem;
+}
