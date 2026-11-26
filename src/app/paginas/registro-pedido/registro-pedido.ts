@@ -33,10 +33,17 @@ export class RegistroPedido implements OnInit {
   private readonly valores = toSignal(this.lineas.valueChanges, {
     initialValue: this.lineas.value,
   });
+  private readonly productosPorId = computed(
+    () => new Map(this.productos().map((producto) => [producto.id, producto])),
+  );
+  protected readonly existenciasPorLinea = computed(() => {
+    const productos = this.productosPorId();
+    return this.valores().map(({ productoId }) => productos.get(productoId ?? 0)?.existencias);
+  });
   protected readonly total = computed(() => {
-    const precios = new Map(this.productos().map((producto) => [producto.id, producto.precio]));
+    const productos = this.productosPorId();
     const centavos = this.valores().reduce((total, linea) => {
-      const precio = precios.get(linea.productoId ?? 0) ?? 0;
+      const precio = productos.get(linea.productoId ?? 0)?.precio ?? 0;
       const cantidad = linea.cantidad ?? 0;
       return Number.isSafeInteger(cantidad) && cantidad > 0
         ? total + Math.round(precio * 100) * cantidad
@@ -94,6 +101,10 @@ export class RegistroPedido implements OnInit {
       this.errorFormulario.set(
         error instanceof ReglaPedidoError ? error.message : 'No se pudo registrar el pedido.',
       );
+      if (error instanceof ReglaPedidoError) {
+        const productos = await this.servicio.listarProductos().catch(() => this.productos());
+        this.productos.set(productos);
+      }
     } finally {
       this.guardando.set(false);
     }

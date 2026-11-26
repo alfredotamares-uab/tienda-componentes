@@ -42,6 +42,7 @@
           <legend class="h5 fw-semibold mb-3">Productos del pedido</legend>
 
           @for (linea of lineas.controls; track linea; let i = $index) {
+            @let existencias = existenciasPorLinea()[i];
             <div class="row g-3 align-items-start mb-3" [formGroupName]="i">
               <div class="col-12 col-md">
                 <label [for]="'producto-' + i" class="form-label">Producto {{ i + 1 }}</label>
@@ -75,16 +76,35 @@
                   type="number"
                   formControlName="cantidad"
                   min="1"
+                  [max]="existencias ?? null"
                   step="1"
                   required
                   [class.is-invalid]="
                     linea.controls.cantidad.touched && linea.controls.cantidad.invalid
                   "
-                  [attr.aria-describedby]="'cantidad-error-' + i"
+                  [attr.aria-describedby]="
+                    (existencias === undefined ? '' : 'stock-' + i + ' ') + 'cantidad-error-' + i
+                  "
                 />
                 <div [id]="'cantidad-error-' + i" class="invalid-feedback">
-                  Ingresa una cantidad entera mayor o igual a 1.
+                  @if (linea.controls.cantidad.hasError('max')) {
+                    La cantidad supera el stock disponible.
+                  } @else {
+                    Ingresa una cantidad entera mayor o igual a 1.
+                  }
                 </div>
+                @if (existencias !== undefined) {
+                  <div
+                    [id]="'stock-' + i"
+                    class="d-flex flex-wrap justify-content-between gap-1 rounded border bg-body-tertiary px-2 py-1 mt-2 small"
+                    aria-live="polite"
+                  >
+                    <span class="text-body-secondary">Stock disponible</span>
+                    <strong
+                      >{{ existencias }} {{ existencias === 1 ? 'unidad' : 'unidades' }}</strong
+                    >
+                  </div>
+                }
               </div>
 
               @if (lineas.length > 1) {
