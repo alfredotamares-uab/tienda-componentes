@@ -169,21 +169,43 @@ export class TiendaService {
         throw new ReglaPedidoError('El pedido ya fue cancelado.');
       }
 
-      const productos = tx.objectStore('productos');
-      for (const linea of pedido.lineas) {
-        const producto = await this.solicitud<Producto | undefined>(
-          productos.get(linea.productoId),
-        );
-        if (!producto) {
-          throw new ReglaPedidoError(`No se encontraron las existencias de ${linea.nombre}.`);
-        }
-        productos.put({ ...producto, existencias: producto.existencias + linea.cantidad });
-      }
+      await this.devolverExistencias(tx.objectStore('productos'), pedido.lineas);
 
       const cancelado: Pedido = { ...pedido, estado: 'Cancelado' };
       pedidos.put(cancelado);
       return cancelado;
     });
+  }
+
+  async eliminarPedido(id: number): Promise<void> {
+    return this.transaccion(['productos', 'pedidos'], 'readwrite', async (tx) => {
+      const pedidos = tx.objectStore('pedidos');
+      const pedido = await this.solicitud<Pedido | undefined>(pedidos.get(id));
+      if (!pedido) {
+        throw new ReglaPedidoError('El pedido no existe.');
+      }
+
+      if (pedido.estado === 'Pendiente') {
+        await this.devolverExistencias(tx.objectStore('productos'), pedido.lineas);
+      }
+
+      await this.solicitud(pedidos.delete(id));
+    });
+  }
+
+  private async devolverExistencias(
+    productos: IDBObjectStore,
+    lineas: LineaPedido[],
+  ): Promise<void> {
+    for (const { productoId, cantidad, nombre } of lineas) {
+      const producto = await this.solicitud<Producto | undefined>(productos.get(productoId));
+      if (!producto) {
+        throw new ReglaPedidoError(`No se encontraron las existencias de ${nombre}.`);
+      }
+      await this.solicitud(
+        productos.put({ ...producto, existencias: producto.existencias + cantidad }),
+      );
+    }
   }
 
   private abrir(): Promise<IDBDatabase> {

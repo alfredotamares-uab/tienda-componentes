@@ -51,16 +51,26 @@
         class="border-top pt-3 d-flex flex-wrap align-items-center justify-content-between gap-3"
       >
         <p class="fs-5 fw-semibold mb-0">Total: {{ actual.total | currency: 'BOB' : 'Bs' }}</p>
-        @if (actual.estado === 'Pendiente') {
+        <div class="d-flex flex-wrap gap-2">
+          @if (actual.estado === 'Pendiente') {
+            <button
+              class="btn btn-outline-danger"
+              type="button"
+              [disabled]="accion() !== null"
+              (click)="cancelar(actual)"
+            >
+              {{ accion() === 'cancelar' ? 'Cancelando…' : 'Cancelar pedido' }}
+            </button>
+          }
           <button
-            class="btn btn-outline-danger"
+            class="btn btn-danger"
             type="button"
-            [disabled]="cancelando()"
-            (click)="cancelar(actual)"
+            [disabled]="accion() !== null"
+            (click)="eliminar(actual)"
           >
-            {{ cancelando() ? 'Cancelando…' : 'Cancelar pedido' }}
+            {{ accion() === 'eliminar' ? 'Eliminando…' : 'Eliminar pedido' }}
           </button>
-        }
+        </div>
       </div>
     </div>
   </article>
