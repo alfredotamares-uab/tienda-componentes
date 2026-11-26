@@ -15,8 +15,8 @@ Abre [http://localhost:4202](http://localhost:4202).
 
 ## Cómo probar el flujo
 
-1. En **Catálogo**, busca «RTX» y selecciona «Tarjetas gráficas». Elige **Pedir**.
-2. Escribe el nombre del cliente, agrega un segundo componente y registra el pedido. Si la cantidad supera el stock, el formulario indica qué corregir.
+1. En **Catálogo**, busca «RTX» y selecciona «Tarjetas gráficas». Elige **Comprar**.
+2. Escribe el nombre del cliente, agrega un segundo componente y registra el pedido. Si la cantidad supera el stock, el formulario indica qué corregir. Con **Cancelar** puedes volver al catálogo antes de registrar el pedido.
 3. En **Historial**, filtra por estado y abre el detalle. El pedido se conserva al recargar.
 4. Cancela el pedido y vuelve al catálogo para comprobar que las unidades regresaron al stock.
 

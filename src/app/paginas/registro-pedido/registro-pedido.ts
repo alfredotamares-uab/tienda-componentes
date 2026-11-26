@@ -2,13 +2,13 @@ import { CurrencyPipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Producto, SeleccionProducto } from '../../modelos/tienda';
 import { ReglaPedidoError, TiendaService } from '../../servicios/tienda.service';
 
 @Component({
   selector: 'app-registro-pedido',
-  imports: [CurrencyPipe, ReactiveFormsModule],
+  imports: [CurrencyPipe, ReactiveFormsModule, RouterLink],
   templateUrl: './registro-pedido.html',
 })
 export class RegistroPedido implements OnInit {
