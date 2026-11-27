@@ -23,13 +23,15 @@ export class Catalogo implements OnInit {
     ...new Set(this.productos().map((producto) => producto.categoria)),
   ]);
   protected readonly filtrados = computed(() => {
-    const texto = this.normalizar(this.busqueda().trim());
+    const palabras = this.normalizar(this.busqueda()).split(/\s+/).filter(Boolean);
     const categoria = this.categoria();
-    return this.productos().filter(
-      (producto) =>
-        this.normalizar(producto.nombre + ' ' + producto.detalle).includes(texto) &&
-        (!categoria || producto.categoria === categoria),
-    );
+    return this.productos().filter((producto) => {
+      const datos = this.normalizar(`${producto.nombre} ${producto.categoria} ${producto.detalle}`);
+      return (
+        (!categoria || producto.categoria === categoria) &&
+        palabras.every((palabra) => datos.includes(palabra))
+      );
+    });
   });
 
   async ngOnInit(): Promise<void> {
