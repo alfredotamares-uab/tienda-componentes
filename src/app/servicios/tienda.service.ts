@@ -166,7 +166,7 @@ export class TiendaService {
         throw new ReglaPedidoError('El pedido no existe.');
       }
       if (pedido.estado !== 'Pendiente') {
-        throw new ReglaPedidoError('El pedido ya fue cancelado.');
+        throw new ReglaPedidoError('El pedido ya fue anulado.');
       }
 
       await this.devolverExistencias(tx.objectStore('productos'), pedido.lineas);

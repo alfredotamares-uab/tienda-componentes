@@ -1,6 +1,6 @@
 # Tienda de Componentes
 
-Aplicación Angular para consultar componentes de computadora, registrar pedidos y cancelar pedidos registrados. El catálogo incluye tarjetas gráficas, procesadores, memoria, almacenamiento, placas madre y fuentes de poder. Los precios en bolivianos y las existencias son datos de ejemplo.
+Aplicación Angular para consultar componentes de computadora, registrar pedidos y anular pedidos registrados. El catálogo incluye tarjetas gráficas, procesadores, memoria, almacenamiento, placas madre y fuentes de poder. Los precios en bolivianos y las existencias son datos de ejemplo.
 
 ## Ejecutar el proyecto
 
@@ -18,9 +18,9 @@ Abre [http://localhost:4202](http://localhost:4202).
 1. En **Catálogo**, busca «RTX» y selecciona «Tarjetas gráficas». Elige **Comprar**.
 2. Escribe el nombre del cliente, agrega un segundo componente y registra el pedido. Si la cantidad supera el stock, el formulario indica qué corregir. Con **Cancelar** puedes volver al catálogo antes de registrar el pedido.
 3. En **Historial**, filtra por estado y abre el detalle. El pedido se conserva al recargar.
-4. Cancela el pedido y vuelve al catálogo para comprobar que las unidades regresaron al stock.
+4. Anula el pedido y vuelve al catálogo para comprobar que las unidades regresaron al stock.
 
-IndexedDB guarda los componentes y los pedidos en el navegador. El registro descuenta las unidades y la cancelación las devuelve una vez.
+IndexedDB guarda los componentes y los pedidos en el navegador. El registro descuenta las unidades y la anulación las devuelve una vez.
 
 ## Imágenes del catálogo
 

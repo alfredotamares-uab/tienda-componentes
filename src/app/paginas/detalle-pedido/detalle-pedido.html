@@ -12,7 +12,7 @@
     <span
       class="badge rounded-pill fs-6"
       [ngClass]="actual.estado === 'Pendiente' ? 'text-bg-warning' : 'text-bg-secondary'"
-      >{{ actual.estado }}</span
+      >{{ actual.estado === 'Cancelado' ? 'Anulado' : actual.estado }}</span
     >
   </div>
 
@@ -59,7 +59,7 @@
               [disabled]="accion() !== null"
               (click)="cancelar(actual)"
             >
-              {{ accion() === 'cancelar' ? 'Cancelando…' : 'Cancelar pedido' }}
+              {{ accion() === 'cancelar' ? 'Anulando…' : 'Anular pedido' }}
             </button>
           }
           <button

@@ -61,12 +61,12 @@ export class DetallePedido {
       const cancelado = await this.servicio.cancelarPedido(pedido.id);
       if (this.pedido()?.id === cancelado.id) {
         this.pedido.set(cancelado);
-        this.mensaje.set('Pedido cancelado. Las unidades volvieron al catálogo.');
+        this.mensaje.set('Pedido anulado. Las unidades volvieron al catálogo.');
       }
     } catch (error) {
       if (this.pedido()?.id === pedido.id) {
         this.errorAccion.set(
-          error instanceof ReglaPedidoError ? error.message : 'No se pudo cancelar el pedido.',
+          error instanceof ReglaPedidoError ? error.message : 'No se pudo anular el pedido.',
         );
       }
     } finally {
