@@ -18,7 +18,7 @@ export class DetallePedido {
 
   protected readonly pedido = signal<Pedido | undefined>(undefined);
   protected readonly cargando = signal(true);
-  protected readonly accion = signal<'cancelar' | 'eliminar' | null>(null);
+  protected readonly accion = signal<'pagar' | 'eliminar' | null>(null);
   protected readonly errorCarga = signal('');
   protected readonly errorAccion = signal('');
   protected readonly mensaje = signal('');
@@ -52,21 +52,23 @@ export class DetallePedido {
       });
   }
 
-  protected async cancelar(pedido: Pedido): Promise<void> {
+  protected async pagar(pedido: Pedido): Promise<void> {
     if (this.accion() || pedido.estado !== 'Pendiente') return;
 
-    this.accion.set('cancelar');
+    this.accion.set('pagar');
     this.errorAccion.set('');
     try {
-      const cancelado = await this.servicio.cancelarPedido(pedido.id);
-      if (this.pedido()?.id === cancelado.id) {
-        this.pedido.set(cancelado);
-        this.mensaje.set('Pedido anulado. Las unidades volvieron al catálogo.');
+      const pagado = await this.servicio.pagarPedido(pedido.id);
+      if (this.pedido()?.id === pagado.id) {
+        this.pedido.set(pagado);
+        this.mensaje.set('Pedido marcado como pagado.');
       }
     } catch (error) {
       if (this.pedido()?.id === pedido.id) {
         this.errorAccion.set(
-          error instanceof ReglaPedidoError ? error.message : 'No se pudo anular el pedido.',
+          error instanceof ReglaPedidoError
+            ? error.message
+            : 'No se pudo marcar el pedido como pagado.',
         );
       }
     } finally {

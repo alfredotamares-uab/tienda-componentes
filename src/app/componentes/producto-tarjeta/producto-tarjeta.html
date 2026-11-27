@@ -22,13 +22,13 @@
       }
     </p>
     <button
-      class="btn btn-primary mt-auto align-self-start"
+      class="btn btn-primary boton-anadir mt-auto align-self-start"
       type="button"
       [disabled]="producto().existencias === 0"
-      [attr.aria-label]="'Comprar ' + producto().nombre"
+      [attr.aria-label]="'Añadir ' + producto().nombre"
       (click)="agregar.emit(producto().id)"
     >
-      Comprar
+      Añadir
     </button>
   </div>
 </article>

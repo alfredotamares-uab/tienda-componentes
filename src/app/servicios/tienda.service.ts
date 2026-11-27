@@ -158,22 +158,20 @@ export class TiendaService {
     });
   }
 
-  async cancelarPedido(id: number): Promise<Pedido> {
-    return this.transaccion(['productos', 'pedidos'], 'readwrite', async (tx) => {
+  async pagarPedido(id: number): Promise<Pedido> {
+    return this.transaccion(['pedidos'], 'readwrite', async (tx) => {
       const pedidos = tx.objectStore('pedidos');
       const pedido = await this.solicitud<Pedido | undefined>(pedidos.get(id));
       if (!pedido) {
         throw new ReglaPedidoError('El pedido no existe.');
       }
       if (pedido.estado !== 'Pendiente') {
-        throw new ReglaPedidoError('El pedido ya fue anulado.');
+        throw new ReglaPedidoError('Solo se pueden pagar los pedidos pendientes.');
       }
 
-      await this.devolverExistencias(tx.objectStore('productos'), pedido.lineas);
-
-      const cancelado: Pedido = { ...pedido, estado: 'Cancelado' };
-      pedidos.put(cancelado);
-      return cancelado;
+      const pagado: Pedido = { ...pedido, estado: 'Pagado' };
+      await this.solicitud(pedidos.put(pagado));
+      return pagado;
     });
   }
 
@@ -185,7 +183,7 @@ export class TiendaService {
         throw new ReglaPedidoError('El pedido no existe.');
       }
 
-      if (pedido.estado === 'Pendiente') {
+      if (pedido.estado !== 'Cancelado') {
         await this.devolverExistencias(tx.objectStore('productos'), pedido.lineas);
       }
 
@@ -210,7 +208,7 @@ export class TiendaService {
 
   private abrir(): Promise<IDBDatabase> {
     this.conexion ??= new Promise<IDBDatabase>((resolve, reject) => {
-      const apertura = indexedDB.open('tienda-componentes', 3);
+      const apertura = indexedDB.open('tienda-componentes', 4);
 
       apertura.onupgradeneeded = ({ oldVersion }) => {
         if (oldVersion === 0) {
@@ -222,6 +220,9 @@ export class TiendaService {
           }
           return;
         }
+
+        // Los pedidos pagados usan los mismos almacenes. Solo se migran precios desde versiones anteriores a la 3.
+        if (oldVersion >= 3) return;
 
         // Las bases de la versión 1 también reciben los nombres y productos agregados en la versión 2.
         const cambiosV2 =

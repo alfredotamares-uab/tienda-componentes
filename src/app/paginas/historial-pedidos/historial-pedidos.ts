@@ -17,6 +17,9 @@ export class HistorialPedidos implements OnInit {
   protected readonly cargando = signal(true);
   protected readonly error = signal('');
   protected readonly estado = signal<EstadoPedido | ''>('');
+  protected readonly tieneAnulados = computed(() =>
+    this.pedidos().some((pedido) => pedido.estado === 'Cancelado'),
+  );
   protected readonly filtrados = computed(() => {
     const estado = this.estado();
     return this.pedidos().filter((pedido) => !estado || pedido.estado === estado);

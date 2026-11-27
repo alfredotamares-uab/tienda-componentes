@@ -6,3 +6,8 @@
   background: #f7f9fc;
   border-bottom: 1px solid var(--bs-card-border-color);
 }
+
+.boton-anadir {
+  --bs-btn-hover-bg: #173b69;
+  --bs-btn-hover-border-color: #173b69;
+}

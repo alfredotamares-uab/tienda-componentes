@@ -17,7 +17,7 @@ export interface LineaPedido extends SeleccionProducto {
   precio: number;
 }
 
-export type EstadoPedido = 'Pendiente' | 'Cancelado';
+export type EstadoPedido = 'Pendiente' | 'Pagado' | 'Cancelado';
 
 export interface Pedido {
   id: number;

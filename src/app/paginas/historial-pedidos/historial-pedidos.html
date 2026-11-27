@@ -6,7 +6,10 @@
     <select id="estado" class="form-select" [(ngModel)]="estado">
       <option value="">Todos los estados</option>
       <option value="Pendiente">Pendiente</option>
-      <option value="Cancelado">Anulado</option>
+      <option value="Pagado">Pagado</option>
+      @if (tieneAnulados()) {
+        <option value="Cancelado">Anulado</option>
+      }
     </select>
   </div>
 </div>
@@ -25,7 +28,11 @@
               <h2 class="h5 mb-0">Pedido #{{ pedido.id }}</h2>
               <span
                 class="badge rounded-pill"
-                [ngClass]="pedido.estado === 'Pendiente' ? 'text-bg-warning' : 'text-bg-secondary'"
+                [ngClass]="{
+                  'text-bg-warning': pedido.estado === 'Pendiente',
+                  'text-bg-success': pedido.estado === 'Pagado',
+                  'text-bg-secondary': pedido.estado === 'Cancelado',
+                }"
                 >{{ pedido.estado === 'Cancelado' ? 'Anulado' : pedido.estado }}</span
               >
             </div>
