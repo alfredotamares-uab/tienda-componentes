@@ -17,7 +17,12 @@ export interface LineaPedido extends SeleccionProducto {
   precio: number;
 }
 
-export type EstadoPedido = 'Pendiente' | 'Pagado' | 'Cancelado';
+export type EstadoVisiblePedido = 'Pendiente' | 'Pagado';
+export type EstadoPedido = EstadoVisiblePedido | 'Cancelado';
+
+export function estadoVisiblePedido(estado: EstadoPedido): EstadoVisiblePedido {
+  return estado === 'Cancelado' ? 'Pendiente' : estado;
+}
 
 export interface Pedido {
   id: number;

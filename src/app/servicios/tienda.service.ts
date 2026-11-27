@@ -127,23 +127,10 @@ export class TiendaService {
       let totalCentavos = 0;
 
       for (const { productoId, cantidad } of seleccion) {
-        if (!Number.isSafeInteger(cantidad) || cantidad < 1) {
-          throw new ReglaPedidoError('Ingresa una cantidad entera mayor o igual a 1.');
-        }
-
-        const producto = await this.solicitud<Producto | undefined>(productos.get(productoId));
-        if (!producto) {
-          throw new ReglaPedidoError('Selecciona un producto del catálogo.');
-        }
-        if (cantidad > producto.existencias) {
-          throw new ReglaPedidoError(
-            `${producto.nombre} tiene ${producto.existencias} unidades disponibles. Reduce la cantidad o quita el producto.`,
-          );
-        }
+        const producto = await this.descontarExistencias(productos, productoId, cantidad);
 
         lineas.push({ productoId, cantidad, nombre: producto.nombre, precio: producto.precio });
         totalCentavos += Math.round(producto.precio * 100) * cantidad;
-        productos.put({ ...producto, existencias: producto.existencias - cantidad });
       }
 
       const pedido: Omit<Pedido, 'id'> = {
@@ -159,14 +146,21 @@ export class TiendaService {
   }
 
   async pagarPedido(id: number): Promise<Pedido> {
-    return this.transaccion(['pedidos'], 'readwrite', async (tx) => {
+    return this.transaccion(['productos', 'pedidos'], 'readwrite', async (tx) => {
       const pedidos = tx.objectStore('pedidos');
       const pedido = await this.solicitud<Pedido | undefined>(pedidos.get(id));
       if (!pedido) {
         throw new ReglaPedidoError('El pedido no existe.');
       }
-      if (pedido.estado !== 'Pendiente') {
-        throw new ReglaPedidoError('Solo se pueden pagar los pedidos pendientes.');
+      if (pedido.estado === 'Pagado') {
+        throw new ReglaPedidoError('El pedido ya está pagado.');
+      }
+
+      if (pedido.estado === 'Cancelado') {
+        const productos = tx.objectStore('productos');
+        for (const { productoId, cantidad } of pedido.lineas) {
+          await this.descontarExistencias(productos, productoId, cantidad);
+        }
       }
 
       const pagado: Pedido = { ...pedido, estado: 'Pagado' };
@@ -189,6 +183,31 @@ export class TiendaService {
 
       await this.solicitud(pedidos.delete(id));
     });
+  }
+
+  private async descontarExistencias(
+    productos: IDBObjectStore,
+    productoId: number,
+    cantidad: number,
+  ): Promise<Producto> {
+    if (!Number.isSafeInteger(cantidad) || cantidad < 1) {
+      throw new ReglaPedidoError('Ingresa una cantidad entera mayor o igual a 1.');
+    }
+
+    const producto = await this.solicitud<Producto | undefined>(productos.get(productoId));
+    if (!producto) {
+      throw new ReglaPedidoError('Selecciona un producto del catálogo.');
+    }
+    if (cantidad > producto.existencias) {
+      throw new ReglaPedidoError(
+        `Quedan ${producto.existencias} unidades de ${producto.nombre} y el pedido requiere ${cantidad}.`,
+      );
+    }
+
+    await this.solicitud(
+      productos.put({ ...producto, existencias: producto.existencias - cantidad }),
+    );
+    return producto;
   }
 
   private async devolverExistencias(
