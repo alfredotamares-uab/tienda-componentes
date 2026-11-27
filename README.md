@@ -1,4 +1,4 @@
-# Tienda de Componentes
+# PCFORGE
 
 Aplicación Angular para consultar componentes de computadora, registrar pedidos, marcarlos como pagados y eliminarlos del historial. El catálogo incluye tarjetas gráficas, procesadores, memoria, almacenamiento, placas madre y fuentes de poder. Los precios en bolivianos y las existencias son datos de ejemplo.
 

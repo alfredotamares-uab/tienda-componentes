@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { LineaPedido, Pedido, Producto, SeleccionProducto } from '../modelos/tienda';
+import { EstadoPedido, LineaPedido, Pedido, Producto, SeleccionProducto } from '../modelos/tienda';
 
 const PRODUCTOS_INICIALES: Producto[] = [
   {
@@ -84,6 +84,8 @@ const PRODUCTOS_INICIALES: Producto[] = [
   },
 ];
 
+type PedidoAnterior = Omit<Pedido, 'estado'> & { estado: EstadoPedido | 'Cancelado' };
+
 export class ReglaPedidoError extends Error {}
 
 @Injectable({ providedIn: 'root' })
@@ -156,14 +158,15 @@ export class TiendaService {
         throw new ReglaPedidoError('El pedido ya está pagado.');
       }
 
-      if (pedido.estado === 'Cancelado') {
+      const { existenciasDevueltas, ...datos } = pedido;
+      if (existenciasDevueltas) {
         const productos = tx.objectStore('productos');
         for (const { productoId, cantidad } of pedido.lineas) {
           await this.descontarExistencias(productos, productoId, cantidad);
         }
       }
 
-      const pagado: Pedido = { ...pedido, estado: 'Pagado' };
+      const pagado: Pedido = { ...datos, estado: 'Pagado' };
       await this.solicitud(pedidos.put(pagado));
       return pagado;
     });
@@ -177,7 +180,7 @@ export class TiendaService {
         throw new ReglaPedidoError('El pedido no existe.');
       }
 
-      if (pedido.estado !== 'Cancelado') {
+      if (!pedido.existenciasDevueltas) {
         await this.devolverExistencias(tx.objectStore('productos'), pedido.lineas);
       }
 
@@ -227,7 +230,7 @@ export class TiendaService {
 
   private abrir(): Promise<IDBDatabase> {
     this.conexion ??= new Promise<IDBDatabase>((resolve, reject) => {
-      const apertura = indexedDB.open('tienda-componentes', 4);
+      const apertura = indexedDB.open('tienda-componentes', 5);
 
       apertura.onupgradeneeded = ({ oldVersion }) => {
         if (oldVersion === 0) {
@@ -240,7 +243,18 @@ export class TiendaService {
           return;
         }
 
-        // Los pedidos pagados usan los mismos almacenes. Solo se migran precios desde versiones anteriores a la 3.
+        const transaccion = apertura.transaction!;
+        const pedidos = transaccion.objectStore('pedidos');
+        const consultaPedidos: IDBRequest<PedidoAnterior[]> = pedidos.getAll();
+        consultaPedidos.onsuccess = () => {
+          for (const pedido of consultaPedidos.result) {
+            if (pedido.estado === 'Cancelado') {
+              // Estas unidades ya volvieron al catálogo en la versión anterior.
+              pedidos.put({ ...pedido, estado: 'Pendiente', existenciasDevueltas: true });
+            }
+          }
+        };
+
         if (oldVersion >= 3) return;
 
         // Las bases de la versión 1 también reciben los nombres y productos agregados en la versión 2.
@@ -249,7 +263,7 @@ export class TiendaService {
             ? PRODUCTOS_INICIALES.filter(({ id }) => [5, 6, 8, 9, 10].includes(id))
             : [];
         const pendientes = new Map(cambiosV2.map((producto) => [producto.id, producto]));
-        const productos = apertura.transaction!.objectStore('productos');
+        const productos = transaccion.objectStore('productos');
         const consulta: IDBRequest<Producto[]> = productos.getAll();
         consulta.onsuccess = () => {
           for (const guardado of consulta.result) {

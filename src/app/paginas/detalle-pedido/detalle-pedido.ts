@@ -3,7 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, from, of, switchMap } from 'rxjs';
-import { estadoVisiblePedido, Pedido } from '../../modelos/tienda';
+import { Pedido } from '../../modelos/tienda';
 import { ReglaPedidoError, TiendaService } from '../../servicios/tienda.service';
 
 @Component({
@@ -16,7 +16,6 @@ export class DetallePedido {
   private readonly ruta = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
-  protected readonly estadoVisible = estadoVisiblePedido;
   protected readonly pedido = signal<Pedido | undefined>(undefined);
   protected readonly cargando = signal(true);
   protected readonly accion = signal<'pagar' | 'eliminar' | null>(null);
@@ -54,7 +53,7 @@ export class DetallePedido {
   }
 
   protected async pagar(pedido: Pedido): Promise<void> {
-    if (this.accion() || this.estadoVisible(pedido.estado) !== 'Pendiente') return;
+    if (this.accion() || pedido.estado !== 'Pendiente') return;
 
     this.accion.set('pagar');
     this.errorAccion.set('');

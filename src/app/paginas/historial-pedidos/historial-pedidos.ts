@@ -2,7 +2,7 @@ import { CurrencyPipe, DatePipe, NgClass } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { EstadoVisiblePedido, estadoVisiblePedido, Pedido } from '../../modelos/tienda';
+import { EstadoPedido, Pedido } from '../../modelos/tienda';
 import { TiendaService } from '../../servicios/tienda.service';
 
 @Component({
@@ -16,13 +16,10 @@ export class HistorialPedidos implements OnInit {
 
   protected readonly cargando = signal(true);
   protected readonly error = signal('');
-  protected readonly estadoVisible = estadoVisiblePedido;
-  protected readonly estado = signal<EstadoVisiblePedido | ''>('');
+  protected readonly estado = signal<EstadoPedido | ''>('');
   protected readonly filtrados = computed(() => {
     const estado = this.estado();
-    return this.pedidos().filter(
-      (pedido) => !estado || this.estadoVisible(pedido.estado) === estado,
-    );
+    return this.pedidos().filter((pedido) => !estado || pedido.estado === estado);
   });
 
   async ngOnInit(): Promise<void> {
