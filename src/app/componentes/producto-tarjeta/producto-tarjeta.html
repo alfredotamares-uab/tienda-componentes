@@ -10,21 +10,27 @@
     />
   }
   <div class="card-body d-flex flex-column p-4">
-    <p class="categoria-producto mb-2">{{ producto().categoria }}</p>
+    @let existencias = producto().existencias;
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+      <p class="categoria-producto mb-0">{{ producto().categoria }}</p>
+      @if (existencias > 0) {
+        <span class="badge rounded-pill text-bg-success">Disponible</span>
+      } @else {
+        <span class="badge rounded-pill text-bg-danger">Agotado</span>
+      }
+    </div>
     <h2 class="h5 mb-1">{{ producto().nombre }}</h2>
     <p class="text-body-secondary small mb-3">{{ producto().detalle }}</p>
     <p class="fw-semibold mb-1">{{ producto().precio | currency: 'BOB' : 'Bs' }}</p>
-    <p class="small text-body-secondary mb-3">
-      @if (producto().existencias > 0) {
-        {{ producto().existencias }} disponibles
-      } @else {
-        Agotado
-      }
-    </p>
+    @if (existencias > 0) {
+      <p class="small text-body-secondary mb-3">
+        {{ existencias }} {{ existencias === 1 ? 'unidad' : 'unidades' }} en stock
+      </p>
+    }
     <button
       class="btn btn-primary boton-anadir mt-auto align-self-start"
       type="button"
-      [disabled]="producto().existencias === 0"
+      [disabled]="existencias <= 0"
       [attr.aria-label]="'Añadir ' + producto().nombre"
       (click)="agregar.emit(producto().id)"
     >
